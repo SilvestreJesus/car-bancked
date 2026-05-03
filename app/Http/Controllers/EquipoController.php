@@ -19,14 +19,12 @@ class EquipoController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
         }
 
         try {
-            $token = strtoupper(substr($request->nombre, 0, 3)) . "-" . rand(1000, 9999);
+            // Generamos un token único basado en el nombre
+            $token = strtoupper(substr(str_replace(' ', '', $request->nombre), 0, 3)) . "-" . rand(1000, 9999);
 
             // 1. Crear Equipo
             $equipo = Equipo::create([
@@ -35,9 +33,10 @@ class EquipoController extends Controller
                 'email'         => $request->email,
                 'password'      => Hash::make($request->password),
                 'token'         => $token,
+                'role'          => 'usuario' // Por defecto es usuario
             ]);
 
-            // 2. Crear Parámetros vinculados
+            // 2. Crear Parámetros iniciales vinculados
             ParametroBot::create([
                 'token' => $token,
                 'distancia_detectar'  => 0,
@@ -54,22 +53,12 @@ class EquipoController extends Controller
     }
 
     public function login(Request $request) {
-        $validator = Validator::make($request->all(), [
-            'email'    => 'required|email',
-            'password' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
-        }
+        $request->validate(['email' => 'required|email', 'password' => 'required']);
 
         $equipo = Equipo::where('email', $request->email)->first();
 
         if (!$equipo || !Hash::check($request->password, $equipo->password)) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Credenciales incorrectas'
-            ], 401);
+            return response()->json(['status' => 'error', 'message' => 'Credenciales incorrectas'], 401);
         }
 
         return response()->json([
@@ -80,12 +69,18 @@ class EquipoController extends Controller
         ]);
     }
 
+    // LISTADO PARA EL ADMIN
+    public function listarTodo() {
+        // Trae todos los equipos e incluye su objeto de parámetros
+        $equipos = Equipo::with('parametros')->get();
+        return response()->json($equipos);
+    }
+
+    // LECTURA PARA ESP32
     public function obtenerParametros($token) {
         $params = ParametroBot::where('token', $token)->first();
 
-        if (!$params) {
-            return response()->json(['message' => 'Token no encontrado'], 404);
-        }
+        if (!$params) return response()->json(['message' => 'No encontrado'], 404);
 
         return response()->json([
             'd_detectar' => $params->distancia_detectar,
@@ -95,7 +90,7 @@ class EquipoController extends Controller
         ]);
     }
 
-    // EXTRA: Endpoint para que el Dashboard actualice los valores
+    // ACTUALIZACIÓN DESDE DASHBOARD
     public function actualizarParametros(Request $request) {
         $params = ParametroBot::where('token', $request->token)->first();
         
@@ -108,6 +103,6 @@ class EquipoController extends Controller
             'tiempo_respuesta'
         ]));
 
-        return response()->json(['status' => 'success', 'message' => 'Parámetros actualizados']);
+        return response()->json(['status' => 'success']);
     }
 }

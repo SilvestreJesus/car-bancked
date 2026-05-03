@@ -17,4 +17,5 @@ class Equipo extends Authenticatable
 public function parametros() {
     return $this->hasOne(ParametroBot::class, 'token', 'token');
 }
+
 }
