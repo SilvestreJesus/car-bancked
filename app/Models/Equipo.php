@@ -9,13 +9,14 @@ class Equipo extends Authenticatable
 {
     use HasApiTokens, Notifiable;
 
-    protected $table = 'equipos'; // Nombre exacto de tu migración
+    protected $table = 'equipos';
 
     protected $fillable = [
         'nombre_equipo',
         'integrantes',
         'email',
         'password',
+        'token', // <--- Agregado para que no falle el registro
         'role',
         'distancia_detectar',
         'distancia_detenerse',
