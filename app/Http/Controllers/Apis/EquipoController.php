@@ -12,60 +12,56 @@ class EquipoController extends Controller
     /**
      * Registro de nuevos equipos y generación de Token.
      */
-    public function registrar(Request $request) {
-        // 1. Validación de los datos de entrada
-        $validator = Validator::make($request->all(), [
-            'nombre'      => 'required|string|max:255',
-            'integrantes' => 'required|string',
-            'email'       => 'required|email|unique:equipos,email',
-            'password'    => 'required|min:6',
+public function registrar(Request $request) {
+    $validator = Validator::make($request->all(), [
+        'nombre'      => 'required|string|max:255',
+        'integrantes' => 'required|string',
+        'email'       => 'required|email|unique:equipos,email',
+        'password'    => 'required|min:6',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'El correo ya existe o los datos son inválidos.',
+            'errors'  => $validator->errors()
+        ], 422);
+    }
+
+    try {
+        // Generar Token único para el Xolo-Bot
+        $prefijo = strtoupper(substr($request->nombre, 0, 3)); 
+        $token = $prefijo . "-" . rand(1000, 9999) . "-" . bin2hex(random_bytes(2));
+
+        // Registro con los campos de tu modelo
+        $equipo = Equipo::create([
+            'nombre_equipo' => $request->nombre,
+            'integrantes'   => $request->integrantes, 
+            'email'         => $request->email,
+            'password'      => Hash::make($request->password),
+            'token'         => $token,
+            'role'          => 'usuario',
+            // Inicializar campos técnicos para evitar el error 500
+            'distancia_detectar'  => 0,
+            'distancia_detenerse' => 0,
+            'velocidad_segura'    => 0,
+            'tiempo_respuesta'    => 0 // <--- Importante incluir este según tu modelo
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Datos inválidos o correo ya registrado',
-                'errors'  => $validator->errors()
-            ], 422);
-        }
+        return response()->json([
+            'status' => 'success',
+            'token'  => $token,
+            'role'   => $equipo->role
+        ], 201);
 
-        try {
-            // 2. Generar el token manual basado en el nombre del Xolo-Bot
-            $prefijo = strtoupper(substr($request->nombre, 0, 3)); 
-            $token = $prefijo . "-" . rand(1000, 9999) . "-" . bin2hex(random_bytes(2));
-
-            // 3. Crear el registro en la base de datos
-            $equipo = Equipo::create([
-                'nombre_equipo' => $request->nombre,
-                'integrantes'   => $request->integrantes, 
-                'email'         => $request->email,
-                'password'      => Hash::make($request->password),
-                'token'         => $token,
-                'role'          => 'usuario', // Rol fijo por defecto en el registro
-                
-                // Inicializamos los valores técnicos en 0 o nulos para 
-                // que no de error 500 si la base de datos no acepta vacíos.
-                'distancia_detectar'  => 0,
-                'distancia_detenerse' => 0,
-                'velocidad_segura'    => 0,
-            ]);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Equipo registrado correctamente',
-                'token'  => $token,
-                'role'   => $equipo->role
-            ], 201);
-
-        } catch (\Exception $e) {
-            // En caso de un error de base de datos o conexión
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Error interno en el servidor de Railway',
-                'error'   => $e->getMessage()
-            ], 500);
-        }
+    } catch (\Exception $e) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'Error en la base de datos de Railway.',
+            'debug'   => $e->getMessage()
+        ], 500);
     }
+}
 
     /**
      * Login para obtener el token y el rol.
