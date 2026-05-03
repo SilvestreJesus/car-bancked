@@ -8,10 +8,16 @@ Route::post('/registrar', [EquipoController::class, 'registrar']);
 Route::post('/login', [EquipoController::class, 'login']);
 
 // --- RUTA PARA EL ROBOT (ESP32) ---
-// El ESP32 solo lee, por eso es GET
 Route::get('/parametros/{token}', [EquipoController::class, 'obtenerParametros']);
+// Nueva ruta para que el ESP32 sepa hacia dónde moverse
+Route::get('/movimiento/{token}', [EquipoController::class, 'obtenerMovimiento']);
 
 // --- RUTAS PROTEGIDAS (DASHBOARD Y ADMIN) ---
-// En el futuro podrías añadir middleware auth:sanctum aquí
 Route::post('/actualizar-parametros', [EquipoController::class, 'actualizarParametros']);
 Route::get('/equipos-completo', [EquipoController::class, 'listarTodo']);
+
+// NUEVAS RUTAS PARA EL PANEL DE CONTROL
+// Recibe 'F', 'B', 'L', 'R', 'S' (Forward, Back, Left, Right, Stop)
+Route::post('/control/mover', [EquipoController::class, 'procesarMovimiento']);
+// Recibe el porcentaje de velocidad manual (1-100)
+Route::post('/control/velocidad-manual', [EquipoController::class, 'actualizarVelocidadManual']);

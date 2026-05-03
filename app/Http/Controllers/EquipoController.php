@@ -76,6 +76,39 @@ class EquipoController extends Controller
         return response()->json($equipos);
     }
 
+// En EquipoController.php
+
+public function procesarMovimiento(Request $request) {
+    // Buscamos los parámetros del bot por su token
+    $params = ParametroBot::where('token', $request->token)->first();
+    if (!$params) return response()->json(['message' => 'No encontrado'], 404);
+
+    // Actualizamos la dirección (F, B, L, R, S)
+    $params->update(['ultimo_movimiento' => $request->direccion]);
+    
+    return response()->json(['status' => 'success', 'direccion' => $request->direccion]);
+}
+
+public function actualizarVelocidadManual(Request $request) {
+    $params = ParametroBot::where('token', $request->token)->first();
+    if (!$params) return response()->json(['message' => 'No encontrado'], 404);
+
+    $params->update(['velocidad_manual' => $request->velocidad]);
+    
+    return response()->json(['status' => 'success']);
+}
+
+// Este es el que usará el ESP32 para saber qué hacer en tiempo real
+public function obtenerMovimiento($token) {
+    $params = ParametroBot::where('token', $token)->first();
+    if (!$params) return response()->json(['message' => 'No encontrado'], 404);
+
+    return response()->json([
+        'mov' => $params->ultimo_movimiento,
+        'vel' => $params->velocidad_manual
+    ]);
+}
+
     // LECTURA PARA ESP32
     public function obtenerParametros($token) {
         $params = ParametroBot::where('token', $token)->first();
