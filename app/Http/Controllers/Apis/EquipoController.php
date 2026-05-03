@@ -54,13 +54,14 @@ public function registrar(Request $request) {
             'role'   => $equipo->role
         ], 201);
 
-    } catch (\Exception $e) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => 'Error en la base de datos de Railway.',
-            'debug'   => $e->getMessage()
-        ], 500);
-    }
+// app/Http/Controllers/EquipoController.php
+} catch (\Exception $e) {
+    return response()->json([
+        'status'  => 'error',
+        'message' => 'Error de base de datos',
+        'error_real' => $e->getMessage() // <--- Esto te dirá exactamente qué columna falta
+    ], 500);
+}
 }
 
     /**

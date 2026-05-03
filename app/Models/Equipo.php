@@ -11,19 +11,19 @@ class Equipo extends Authenticatable
 
     protected $table = 'equipos';
 
-    protected $fillable = [
-        'nombre_equipo',
-        'integrantes',
-        'email',
-        'password',
-        'token', // <--- Agregado para que no falle el registro
-        'role',
-        'distancia_detectar',
-        'distancia_detenerse',
-        'velocidad_segura',
-        'tiempo_respuesta'
-    ];
-
+// app/Models/Equipo.php
+protected $fillable = [
+    'nombre_equipo',
+    'integrantes',
+    'email',
+    'password',
+    'token',
+    'role',
+    'distancia_detectar',
+    'distancia_detenerse',
+    'velocidad_segura',
+    'tiempo_respuesta' // <--- Asegúrate de que este no falte
+];
     protected $hidden = [
         'password',
     ];
