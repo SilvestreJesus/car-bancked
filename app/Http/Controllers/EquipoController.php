@@ -110,19 +110,21 @@ public function obtenerMovimiento($token) {
 }
 
     // LECTURA PARA ESP32
-    public function obtenerParametros($token) {
-        $params = ParametroBot::where('token', $token)->first();
+// En EquipoController.php -> obtenerParametros
+public function obtenerParametros($token) {
+    $params = ParametroBot::where('token', $token)->first();
+    if (!$params) return response()->json(['message' => 'No encontrado'], 404);
 
-        if (!$params) return response()->json(['message' => 'No encontrado'], 404);
+    // EL ESP32 acaba de llamar, marcamos que está "Vivo"
+    $params->update(['ultima_conexion' => now()]); 
 
-        return response()->json([
-            'd_detectar' => $params->distancia_detectar,
-            'd_frenar'   => $params->distancia_detenerse,
-            'v_segura'   => $params->velocidad_segura,
-            't_resp'     => $params->tiempo_respuesta
-        ]);
-    }
-
+    return response()->json([
+        'd_detectar' => $params->distancia_detectar,
+        'd_frenar'   => $params->distancia_detenerse,
+        'v_segura'   => $params->velocidad_segura,
+        't_resp'     => $params->tiempo_respuesta
+    ]);
+}
     // ACTUALIZACIÓN DESDE DASHBOARD
     public function actualizarParametros(Request $request) {
         $params = ParametroBot::where('token', $request->token)->first();
