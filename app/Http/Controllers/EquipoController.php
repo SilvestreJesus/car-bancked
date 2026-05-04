@@ -114,7 +114,7 @@ public function obtenerParametros($token) {
     $params = ParametroBot::where('token', $token)->first();
     if (!$params) return response()->json(['message' => 'No encontrado'], 404);
 
-    // CADA VEZ QUE EL ESP32 LLAMA, ACTUALIZAMOS LA HORA
+    // Actualizamos la hora de "visto por última vez"
     $params->update(['ultima_conexion' => now()]); 
 
     return response()->json([
@@ -122,9 +122,9 @@ public function obtenerParametros($token) {
         'd_frenar'   => $params->distancia_detenerse,
         'v_segura'   => $params->velocidad_segura,
         't_resp'     => $params->tiempo_respuesta,
-        'status'     => 'online', // Confirmación para el ESP32
-        'last_ping'  => $params->ultima_conexion // Para que Vue lo lea
-        
+        'status'     => 'online',
+        // Aseguramos formato ISO para evitar errores de zona horaria en JS
+        'last_ping'  => $params->ultima_conexion->toIso8601String() 
     ]);
 }
 
