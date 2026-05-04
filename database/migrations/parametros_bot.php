@@ -14,6 +14,7 @@ Schema::create('parametros_bot', function (Blueprint $table) {
     $table->integer('distancia_detenerse')->default(0);
     $table->integer('velocidad_segura')->default(0);
     $table->integer('tiempo_respuesta')->default(0);
+    $table->timestamp('ultima_conexion')->nullable();
     $table->timestamps();
 
     // Vinculamos el token
