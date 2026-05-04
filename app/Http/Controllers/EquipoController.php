@@ -124,6 +124,7 @@ public function obtenerParametros($token) {
         't_resp'     => $params->tiempo_respuesta,
         'status'     => 'online', // Confirmación para el ESP32
         'last_ping'  => $params->ultima_conexion // Para que Vue lo lea
+        
     ]);
 }
 
